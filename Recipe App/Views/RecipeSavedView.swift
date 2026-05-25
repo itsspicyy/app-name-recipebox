@@ -90,6 +90,7 @@ struct RecipeSavedView: View {
             }
         }
         .onAppear {
+            HapticManager.success()
             withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
                 showCheckmark = true
             }

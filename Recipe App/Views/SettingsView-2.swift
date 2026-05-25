@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var settings = AppSettings.shared
+    @ObservedObject var notifications = NotificationManager.shared
     @EnvironmentObject var store: RecipeStore
     @Environment(\.dismiss) private var dismiss
     
@@ -15,7 +16,7 @@ struct SettingsView: View {
     private let orange = Color(hex: "F4A261")
     private let coral = Color(hex: "E76F51")
     
-    // MARK: - Binding Helpers
+    // MARK: - Binding Helper
     
     private func bind<T>(_ keyPath: ReferenceWritableKeyPath<AppSettings, T>) -> Binding<T> {
         Binding(
@@ -125,15 +126,6 @@ struct SettingsView: View {
                         }
                     }
                     
-                    Toggle(isOn: bind(\.showTimerNotifications)) {
-                        Label {
-                            Text("Timer Notifications")
-                        } icon: {
-                            settingsIcon("app.badge.fill", color: coral)
-                        }
-                    }
-                    .tint(teal)
-                    
                     Toggle(isOn: bind(\.autoStartNextStep)) {
                         Label {
                             Text("Auto-Advance Steps")
@@ -153,6 +145,100 @@ struct SettingsView: View {
                     .tint(teal)
                 } header: {
                     sectionHeader("Cooking")
+                }
+                
+                // ── Notifications ──
+                
+                Section {
+                    // Master toggle
+                    Toggle(isOn: notificationsBinding) {
+                        Label {
+                            Text("Enable Notifications")
+                        } icon: {
+                            settingsIcon("bell.badge.fill", color: Color(hex: "5E60CE"))
+                        }
+                    }
+                    .tint(teal)
+                    
+                    if settings.enableNotifications {
+                        // System permission status
+                        if !notifications.isAuthorized {
+                            Button {
+                                notifications.openAppSettings()
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundStyle(.orange)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Notifications Disabled in System")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(.primary)
+                                        Text("Tap to open Settings and enable notifications for Recipe Box.")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Toggle(isOn: mealPlanRemindersBinding) {
+                            Label {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Meal Plan Reminders")
+                                    Text("Get reminded before planned meals")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            } icon: {
+                                settingsIcon("calendar.badge.clock", color: Color(hex: "5E60CE"))
+                            }
+                        }
+                        .tint(teal)
+                        
+                        Toggle(isOn: dailySuggestionBinding) {
+                            Label {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Daily Dinner Suggestion")
+                                    Text("A nudge at 4:30 PM to plan dinner")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            } icon: {
+                                settingsIcon("sparkles", color: Color(hex: "5E60CE"))
+                            }
+                        }
+                        .tint(teal)
+                        
+                        Toggle(isOn: weeklyPlanBinding) {
+                            Label {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Weekly Plan Reminder")
+                                    Text("Sunday morning reminder to plan the week")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            } icon: {
+                                settingsIcon("list.clipboard.fill", color: Color(hex: "5E60CE"))
+                            }
+                        }
+                        .tint(teal)
+                        
+                        Toggle(isOn: timerNotificationsBinding) {
+                            Label {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Timer Alerts")
+                                    Text("Get notified when cooking timers finish")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            } icon: {
+                                settingsIcon("timer", color: Color(hex: "5E60CE"))
+                            }
+                        }
+                        .tint(teal)
+                    }
+                } header: {
+                    sectionHeader("Notifications")
                 }
                 
                 // ── Grocery List ──
@@ -328,6 +414,9 @@ struct SettingsView: View {
                         .foregroundStyle(teal)
                 }
             }
+            .onAppear {
+                notifications.checkAuthorizationStatus()
+            }
             .alert("Reset Settings?", isPresented: $showResetAlert) {
                 Button("Cancel", role: .cancel) {}
                 Button("Reset", role: .destructive) { settings.resetToDefaults() }
@@ -350,6 +439,56 @@ struct SettingsView: View {
                 Text("Recipe export will be available in a future update.")
             }
         }
+    }
+    
+    // MARK: - Notification Bindings
+    
+    private var notificationsBinding: Binding<Bool> {
+        Binding(
+            get: { settings.enableNotifications },
+            set: { newValue in
+                settings.enableNotifications = newValue
+                NotificationManager.shared.handleNotificationToggle(enabled: newValue)
+            }
+        )
+    }
+    
+    private var mealPlanRemindersBinding: Binding<Bool> {
+        Binding(
+            get: { settings.enableMealPlanReminders },
+            set: { newValue in
+                settings.enableMealPlanReminders = newValue
+            }
+        )
+    }
+    
+    private var dailySuggestionBinding: Binding<Bool> {
+        Binding(
+            get: { settings.enableDailySuggestionNotification },
+            set: { newValue in
+                settings.enableDailySuggestionNotification = newValue
+                NotificationManager.shared.scheduleDailySuggestion(enabled: newValue)
+            }
+        )
+    }
+    
+    private var weeklyPlanBinding: Binding<Bool> {
+        Binding(
+            get: { settings.enableWeeklyPlanNotification },
+            set: { newValue in
+                settings.enableWeeklyPlanNotification = newValue
+                NotificationManager.shared.scheduleWeeklyPlanReminder(enabled: newValue)
+            }
+        )
+    }
+    
+    private var timerNotificationsBinding: Binding<Bool> {
+        Binding(
+            get: { settings.enableTimerNotifications },
+            set: { newValue in
+                settings.enableTimerNotifications = newValue
+            }
+        )
     }
     
     // MARK: - Subviews

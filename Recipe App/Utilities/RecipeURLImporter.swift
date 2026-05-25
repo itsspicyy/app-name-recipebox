@@ -118,11 +118,10 @@ class RecipeURLImporter {
             result.ingredients = ingredients
         }
         
-        // Instructions
-        if let instructions = json["recipeInstructions"] as? [String] {
-            result.instructions = instructions
-        } else if let instructionObjects = json["recipeInstructions"] as? [[String: Any]] {
-            result.instructions = instructionObjects.compactMap { $0["text"] as? String }
+        // Instructions — handle all JSON-LD formats:
+        // [String], [HowToStep], [HowToSection containing HowToStep], or mixed
+        if let rawInstructions = json["recipeInstructions"] {
+            result.instructions = extractInstructions(from: rawInstructions)
         }
         
         // Times (ISO 8601 duration format: PT30M, PT1H30M)
@@ -148,6 +147,87 @@ class RecipeURLImporter {
         }
         
         return result
+    }
+    
+    /// Recursively extract instruction text from any JSON-LD format
+    private static func extractInstructions(from value: Any) -> [String] {
+        var results: [String] = []
+        
+        // Plain string
+        if let str = value as? String {
+            let trimmed = str.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { results.append(trimmed) }
+            return results
+        }
+        
+        // Array of strings
+        if let arr = value as? [String] {
+            return arr.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+        }
+        
+        // Single object (HowToStep, HowToSection, etc.)
+        if let dict = value as? [String: Any] {
+            results.append(contentsOf: extractInstructionsFromObject(dict))
+            return results
+        }
+        
+        // Array of objects
+        if let arr = value as? [[String: Any]] {
+            for obj in arr {
+                results.append(contentsOf: extractInstructionsFromObject(obj))
+            }
+            return results
+        }
+        
+        // Mixed array (strings and objects)
+        if let arr = value as? [Any] {
+            for item in arr {
+                results.append(contentsOf: extractInstructions(from: item))
+            }
+        }
+        
+        return results
+    }
+    
+    /// Extract instruction text from a single JSON-LD object
+    private static func extractInstructionsFromObject(_ obj: [String: Any]) -> [String] {
+        var results: [String] = []
+        let type = obj["@type"] as? String ?? ""
+        
+        switch type {
+        case "HowToStep":
+            // HowToStep has a "text" field
+            if let text = obj["text"] as? String {
+                let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty { results.append(trimmed) }
+            }
+            
+        case "HowToSection":
+            // HowToSection contains itemListElement with HowToStep items
+            if let items = obj["itemListElement"] as? [[String: Any]] {
+                for item in items {
+                    results.append(contentsOf: extractInstructionsFromObject(item))
+                }
+            } else if let items = obj["itemListElement"] as? [Any] {
+                for item in items {
+                    results.append(contentsOf: extractInstructions(from: item))
+                }
+            }
+            
+        default:
+            // Unknown type — try "text" field first, then itemListElement
+            if let text = obj["text"] as? String {
+                let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty { results.append(trimmed) }
+            } else if let items = obj["itemListElement"] as? [Any] {
+                for item in items {
+                    results.append(contentsOf: extractInstructions(from: item))
+                }
+            }
+        }
+        
+        return results
     }
     
     /// Parse recipeYield which can be: Int, String, [String], [Int], or nested object
@@ -193,9 +273,9 @@ class RecipeURLImporter {
             return n
         }
         
-        // Look for patterns like "12 servings", "serves 8", "makes 10"
+        // Look for explicit serving counts: "12 servings", "8 portions", "24 slices"
         let servingPatterns = [
-            #"(\d+)\s*(?:servings?|portions?|pieces?|slices?)"#,
+            #"(\d+)\s*(?:servings?|portions?)"#,
             #"(?:serves?|makes?|yields?)\s*:?\s*(\d+)"#
         ]
         
@@ -209,7 +289,42 @@ class RecipeURLImporter {
             }
         }
         
-        // Last resort: grab the first number in the string
+        // Look for slice/piece counts: "12 slices", "24 pieces", "16 bars", "12 cookies", "24 muffins"
+        let piecePatterns = [
+            #"(\d+)\s*(?:slices?|pieces?|bars?|cookies?|muffins?|cupcakes?|brownies?|rolls?|biscuits?|scones?)"#
+        ]
+        
+        for pattern in piecePatterns {
+            if let match = lower.range(of: pattern, options: .regularExpression) {
+                let matched = String(lower[match])
+                let nums = matched.components(separatedBy: .decimalDigits.inverted)
+                    .filter { !$0.isEmpty }
+                    .compactMap { Int($0) }
+                if let n = nums.first, n > 0, n <= 100 { return n }
+            }
+        }
+        
+        // Check for parenthetical serving info: "1 loaf (12 slices)", "2 pans (about 16 servings)"
+        if let parenRange = lower.range(of: #"\(([^)]+)\)"#, options: .regularExpression) {
+            let parenContent = String(lower[parenRange])
+            // Recursively try to parse the content inside parentheses
+            let inner = parenContent.replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "")
+            if let n = extractServingsFromString(inner) { return n }
+        }
+        
+        // Whole-item yields: "1 loaf", "1 pan", "1 batch", "1 cake", "1 pie", "2 loaves"
+        // These describe a whole item, not a serving count — use sensible defaults
+        let wholeItemWords = ["loaf", "loaves", "pan", "pans", "batch", "batches",
+                              "cake", "cakes", "pie", "pies", "tart", "tarts",
+                              "casserole", "dish", "pot", "skillet", "sheet",
+                              "recipe", "bundle", "round", "ring", "tube"]
+        
+        if wholeItemWords.contains(where: { lower.contains($0) }) {
+            // Don't return the number (e.g. "1" from "1 loaf"), return nil so we fall back to default 4
+            return nil
+        }
+        
+        // Last resort: grab the first number if no whole-item word was found
         let allNums = lower.components(separatedBy: .decimalDigits.inverted)
             .filter { !$0.isEmpty }
             .compactMap { Int($0) }

@@ -94,7 +94,13 @@ class AppSettings: ObservableObject {
             "showNutritionEstimates": true,
             "dailyCalorieGoal": 2000,
             "enableiCloudSync": false,
-            "autoBackup": true
+            "autoBackup": true,
+            "enableNotifications": true,
+            "enableMealPlanReminders": true,
+            "enableDailySuggestionNotification": true,
+            "enableWeeklyPlanNotification": true,
+            "enableTimerNotifications": true,
+            "hasCompletedOnboarding": false
         ])
     }
     
@@ -218,6 +224,33 @@ class AppSettings: ObservableObject {
         set { mealPlanStartDayRaw = newValue ? 2 : 1 }
     }
     
+    // ── Notifications ──
+    
+    var enableNotifications: Bool {
+        get { d.bool(forKey: "enableNotifications") }
+        set { set(newValue, forKey: "enableNotifications") }
+    }
+    
+    var enableMealPlanReminders: Bool {
+        get { d.bool(forKey: "enableMealPlanReminders") }
+        set { set(newValue, forKey: "enableMealPlanReminders") }
+    }
+    
+    var enableDailySuggestionNotification: Bool {
+        get { d.bool(forKey: "enableDailySuggestionNotification") }
+        set { set(newValue, forKey: "enableDailySuggestionNotification") }
+    }
+    
+    var enableWeeklyPlanNotification: Bool {
+        get { d.bool(forKey: "enableWeeklyPlanNotification") }
+        set { set(newValue, forKey: "enableWeeklyPlanNotification") }
+    }
+    
+    var enableTimerNotifications: Bool {
+        get { d.bool(forKey: "enableTimerNotifications") }
+        set { set(newValue, forKey: "enableTimerNotifications") }
+    }
+    
     // ── Nutrition ──
     
     var showNutritionEstimates: Bool {
@@ -242,6 +275,13 @@ class AppSettings: ObservableObject {
         set { set(newValue, forKey: "autoBackup") }
     }
     
+    // ── Onboarding ──
+    
+    var hasCompletedOnboarding: Bool {
+        get { d.bool(forKey: "hasCompletedOnboarding") }
+        set { set(newValue, forKey: "hasCompletedOnboarding") }
+    }
+    
     // ── Reset ──
     
     func resetToDefaults() {
@@ -264,5 +304,11 @@ class AppSettings: ObservableObject {
         dailyCalorieGoal = 2000
         enableiCloudSync = false
         autoBackup = true
+        enableNotifications = true
+        enableMealPlanReminders = true
+        enableDailySuggestionNotification = true
+        enableWeeklyPlanNotification = true
+        enableTimerNotifications = true
+        NotificationManager.shared.handleNotificationToggle(enabled: true)
     }
 }

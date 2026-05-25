@@ -3,16 +3,18 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 90;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F526B4982FC4AAB0006A9886 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = F526B4762FC4AAB0006A9886 /* .gitignore */; };
 		F572A4562FB9833D001A235A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F572A4552FB9833D001A235A /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F526B4762FC4AAB0006A9886 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		F572A4552FB9833D001A235A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		F572A4572FB9851B001A235A /* Recipe App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Recipe App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F572A4572FB9851B001A235A /* Recipe Box.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Recipe Box.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -26,10 +28,8 @@
 /* Begin PBXFrameworksBuildPhase section */
 		F572A2E12FB42D4F001A235A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
@@ -37,9 +37,10 @@
 		F572A2DB2FB42D4F001A235A = {
 			isa = PBXGroup;
 			children = (
+				F526B4762FC4AAB0006A9886 /* .gitignore */,
 				F572A4552FB9833D001A235A /* Assets.xcassets */,
 				F572A2E62FB42D4F001A235A /* Recipe App */,
-				F572A4572FB9851B001A235A /* Recipe App.app */,
+				F572A4572FB9851B001A235A /* Recipe Box.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -56,16 +57,12 @@
 			);
 			buildRules = (
 			);
-			dependencies = (
-			);
 			fileSystemSynchronizedGroups = (
 				F572A2E62FB42D4F001A235A /* Recipe App */,
 			);
 			name = "Recipe App";
-			packageProductDependencies = (
-			);
 			productName = "Recipe App";
-			productReference = F572A4572FB9851B001A235A /* Recipe App.app */;
+			productReference = F572A4572FB9851B001A235A /* Recipe Box.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -84,7 +81,7 @@
 					};
 				};
 			};
-			buildConfigurationList = F572A2DF2FB42D4F001A235A /* Build configuration list for PBXProject "Recipe App" */;
+			buildConfigurationList = F572A2DF2FB42D4F001A235A /* Build configuration list for PBXProject "Recipe Box" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -93,7 +90,7 @@
 			);
 			mainGroup = F572A2DB2FB42D4F001A235A;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 90;
 			productRefGroup = F572A2DB2FB42D4F001A235A;
 			projectDirPath = "";
 			projectRoot = "";
@@ -106,26 +103,23 @@
 /* Begin PBXResourcesBuildPhase section */
 		F572A2E22FB42D4F001A235A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
+				F526B4982FC4AAB0006A9886 /* .gitignore in Resources */,
 				F572A4562FB9833D001A235A /* Assets.xcassets in Resources */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F572A2E02FB42D4F001A235A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		F572A2ED2FB42D51001A235A /* Debug */ = {
+		F572A2ED2FB42D51001A235A /* Debug configuration for PBXProject "Recipe Box" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -189,7 +183,7 @@
 			};
 			name = Debug;
 		};
-		F572A2EE2FB42D51001A235A /* Release */ = {
+		F572A2EE2FB42D51001A235A /* Release configuration for PBXProject "Recipe Box" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -246,7 +240,7 @@
 			};
 			name = Release;
 		};
-		F572A2F02FB42D51001A235A /* Debug */ = {
+		F572A2F02FB42D51001A235A /* Debug configuration for PBXNativeTarget "Recipe App" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -259,18 +253,24 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Recipe-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Recipe Box";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Recipe Box uses your camera to scan recipe cards and cookbook pages.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Recipe Box saves recipe photos to your library.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Recipe Box uses your photos to import recipe images and scan recipes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "ethanthill2020-gmail.com.Recipe-App";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ethanhill.recipebox;
+				PRODUCT_NAME = "Recipe Box";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -282,7 +282,7 @@
 			};
 			name = Debug;
 		};
-		F572A2F12FB42D51001A235A /* Release */ = {
+		F572A2F12FB42D51001A235A /* Release configuration for PBXNativeTarget "Recipe App" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -295,18 +295,24 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Recipe-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Recipe Box";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Recipe Box uses your camera to scan recipe cards and cookbook pages.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Recipe Box saves recipe photos to your library.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Recipe Box uses your photos to import recipe images and scan recipes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "ethanthill2020-gmail.com.Recipe-App";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ethanhill.recipebox;
+				PRODUCT_NAME = "Recipe Box";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -320,22 +326,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F572A2DF2FB42D4F001A235A /* Build configuration list for PBXProject "Recipe App" */ = {
+		F572A2DF2FB42D4F001A235A /* Build configuration list for PBXProject "Recipe Box" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F572A2ED2FB42D51001A235A /* Debug */,
-				F572A2EE2FB42D51001A235A /* Release */,
+				F572A2ED2FB42D51001A235A /* Debug configuration for PBXProject "Recipe Box" */,
+				F572A2EE2FB42D51001A235A /* Release configuration for PBXProject "Recipe Box" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		F572A2EF2FB42D51001A235A /* Build configuration list for PBXNativeTarget "Recipe App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F572A2F02FB42D51001A235A /* Debug */,
-				F572A2F12FB42D51001A235A /* Release */,
+				F572A2F02FB42D51001A235A /* Debug configuration for PBXNativeTarget "Recipe App" */,
+				F572A2F12FB42D51001A235A /* Release configuration for PBXNativeTarget "Recipe App" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */

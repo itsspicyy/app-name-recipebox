@@ -1,10 +1,13 @@
 import SwiftUI
+import UIKit
 
 struct SideMenuView: View {
     @Binding var isOpen: Bool
     @Binding var showSettings: Bool
     @Binding var selectedTab: HomeView.HomeTab
     @EnvironmentObject var store: RecipeStore
+    
+    @State private var showHelpTips = false
     
     private let navy = Color(hex: "264653")
     private let teal = Color(hex: "2A9D8F")
@@ -41,6 +44,9 @@ struct SideMenuView: View {
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isOpen)
         .ignoresSafeArea()
+        .sheet(isPresented: $showHelpTips) {
+            HelpTipsView()
+        }
     }
     
     // MARK: - Menu Content
@@ -123,12 +129,25 @@ struct SideMenuView: View {
                         .padding(.horizontal, 8)
                         .padding(.vertical, 8)
                     
+                    menuItem(icon: "envelope.fill", label: "Send Feedback", color: teal) {
+                        close()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            FeedbackMailer.open()
+                        }
+                    }
+                    
                     menuItem(icon: "square.and.arrow.up.fill", label: "Share App", color: .secondary) {
                         close()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            AppShareHelper.share()
+                        }
                     }
                     
                     menuItem(icon: "questionmark.circle.fill", label: "Help & Tips", color: .secondary) {
                         close()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            showHelpTips = true
+                        }
                     }
                 }
                 .padding(.horizontal, 12)
@@ -230,5 +249,76 @@ struct HamburgerButton: View {
         RoundedRectangle(cornerRadius: 1)
             .fill(navy)
             .frame(width: 20, height: 2)
+    }
+}
+
+// MARK: - Feedback Mailer
+
+struct FeedbackMailer {
+    static let feedbackEmail = "ethanhill2002@gmail.com"
+    static let subject = "Recipe Box Feedback"
+    
+    static func open() {
+        let deviceInfo = UIDevice.current
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        
+        let body = """
+        
+        
+        --- Please write your feedback above this line ---
+        
+        App Version: \(appVersion) (\(buildNumber))
+        Device: \(deviceInfo.model)
+        iOS: \(deviceInfo.systemVersion)
+        """
+        
+        let subjectEncoded = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
+        let bodyEncoded = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        
+        guard let url = URL(string: "mailto:\(feedbackEmail)?subject=\(subjectEncoded)&body=\(bodyEncoded)") else { return }
+        
+        if UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+        }
+    }
+}
+
+// MARK: - App Share Helper
+
+struct AppShareHelper {
+    // Replace with your actual App Store URL once published
+    static let appStoreURL = "https://apps.apple.com/app/recipe-box/id0000000000"
+    
+    static func share() {
+        let text = "Check out Recipe Box — a beautiful app for organizing your recipes, meal planning, and grocery lists! 🍳"
+        var shareItems: [Any] = [text]
+        
+        if let url = URL(string: appStoreURL) {
+            shareItems.append(url)
+        }
+        
+        let activityVC = UIActivityViewController(
+            activityItems: shareItems,
+            applicationActivities: nil
+        )
+        
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootVC = windowScene.windows.first?.rootViewController else {
+            return
+        }
+        
+        var topVC = rootVC
+        while let presented = topVC.presentedViewController {
+            topVC = presented
+        }
+        
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = topVC.view
+            popover.sourceRect = CGRect(x: topVC.view.bounds.midX, y: topVC.view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        
+        topVC.present(activityVC, animated: true)
     }
 }

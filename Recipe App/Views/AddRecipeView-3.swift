@@ -5,7 +5,10 @@ struct AddRecipeView: View {
     @EnvironmentObject var store: RecipeStore
     @Environment(\.dismiss) var dismiss
     var existingRecipe: Recipe?
-    private var isEditing: Bool { existingRecipe != nil && existingRecipe?.title.isEmpty == false }
+    private var isEditing: Bool {
+        guard let existing = existingRecipe, !existing.title.isEmpty else { return false }
+        return store.recipes.contains(where: { $0.id == existing.id })
+    }
     @State private var recipe: Recipe
     @State private var currentStep: EntryStep = .category
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
@@ -43,6 +46,7 @@ struct AddRecipeView: View {
                     RecipeSavedView(
                         recipeTitle: savedRecipeTitle,
                         onDone: {
+                            NotificationCenter.default.post(name: .recipeSavedDismissAll, object: nil)
                             dismiss()
                         },
                         onAddMore: {
@@ -102,13 +106,14 @@ struct AddRecipeView: View {
     private var bottomNavBar: some View {
         HStack {
             if currentStep.rawValue > 0 {
-                Button { withAnimation { currentStep = EntryStep(rawValue: currentStep.rawValue - 1) ?? .category } } label: {
+                Button { HapticManager.selection(); withAnimation { currentStep = EntryStep(rawValue: currentStep.rawValue - 1) ?? .category } } label: {
                     HStack(spacing: 4) { Image(systemName: "chevron.left"); Text("Back") }.font(.body.weight(.medium)).foregroundStyle(Color(hex: "264653"))
                 }
             }
             Spacer()
             if currentStep == .review {
                 Button {
+                    HapticManager.success()
                     // Auto-suggest difficulty before saving
                     let allTexts = (recipe.preparationSteps + recipe.cookingSteps).map { $0.text }
                     let suggested = DifficultyEstimator.suggest(ingredientCount: recipe.ingredients.count, prepStepCount: recipe.preparationSteps.count, cookStepCount: recipe.cookingSteps.count, totalTimeMinutes: recipe.totalTimeMinutes, stepTexts: allTexts)
@@ -130,7 +135,7 @@ struct AddRecipeView: View {
                         .padding(.horizontal, 24).padding(.vertical, 10).background(Color(hex: "2A9D8F")).clipShape(Capsule())
                 }.disabled(recipe.title.isEmpty)
             } else {
-                Button { withAnimation { currentStep = EntryStep(rawValue: currentStep.rawValue + 1) ?? .review } } label: {
+                Button { HapticManager.selection(); withAnimation { currentStep = EntryStep(rawValue: currentStep.rawValue + 1) ?? .review } } label: {
                     HStack(spacing: 4) { Text("Next"); Image(systemName: "chevron.right") }.font(.body.weight(.medium)).foregroundStyle(.white)
                         .padding(.horizontal, 24).padding(.vertical, 10).background(Color(hex: "2A9D8F")).clipShape(Capsule())
                 }
@@ -287,6 +292,7 @@ struct AddRecipeView: View {
                     Text("Qty supports fractions: 1/4, 1 1/2, etc.").font(.caption2).foregroundStyle(.secondary)
                     Button {
                         guard !ingName.isEmpty else { return }
+                        HapticManager.medium()
                         let price = Double(ingPrice)
                         recipe.ingredients.append(Ingredient(quantity: ingQuantity, unit: ingUnit, name: ingName, substitution: ingSubstitution.isEmpty ? nil : ingSubstitution, priceEstimate: price))
                         ingQuantity = ""; ingUnit = ""; ingName = ""; ingSubstitution = ""; ingPrice = ""
@@ -329,6 +335,7 @@ struct AddRecipeView: View {
                     }
                     Button {
                         guard !inputText.wrappedValue.isEmpty else { return }
+                        HapticManager.medium()
                         steps.wrappedValue.append(PrepStep(text: inputText.wrappedValue, timerSeconds: Int(timerInput.wrappedValue)))
                         inputText.wrappedValue = ""; timerInput.wrappedValue = ""
                     } label: {

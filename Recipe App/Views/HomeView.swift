@@ -41,7 +41,7 @@ struct HomeView: View {
                 }
                 .navigationTitle("Recipe Box")
                 .navigationBarTitleDisplayMode(.large)
-                .searchable(text: $store.searchText, prompt: "Search recipes or ingredients...")
+                .searchable(text: $store.searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search recipes or ingredients...")
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         HamburgerButton(isMenuOpen: $isMenuOpen)
@@ -68,6 +68,12 @@ struct HomeView: View {
                     SettingsView()
                         .environmentObject(store)
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .recipeSavedDismissAll)) { _ in
+                    showingAddSheet = false
+                    showingImportSheet = false
+                    showingTextImport = false
+                    showingURLImport = false
+                }
             }
             
             // Side menu overlays everything
@@ -85,6 +91,7 @@ struct HomeView: View {
             HStack(spacing: 4) {
                 ForEach(HomeTab.allCases, id: \.self) { tab in
                     Button {
+                        HapticManager.selection()
                         withAnimation(.easeInOut(duration: 0.2)) { selectedTab = tab }
                     } label: {
                         HStack(spacing: 4) {
@@ -158,7 +165,7 @@ struct HomeView: View {
                         }
                     }.frame(width: 60, height: 60).clipShape(RoundedRectangle(cornerRadius: 10))
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(s.recipe.title).font(.headline).foregroundStyle(.primary).lineLimit(1)
+                        Text(s.recipe.title).font(.headline).foregroundStyle(.primary).lineLimit(2)
                         HStack(spacing: 8) {
                             Label(s.recipe.category.rawValue, systemImage: s.recipe.category.icon).font(.caption2).foregroundStyle(s.recipe.category.color)
                             Label(s.recipe.totalTimeDisplay, systemImage: "clock").font(.caption2).foregroundStyle(.secondary)
@@ -190,7 +197,7 @@ struct HomeView: View {
     }
     
     private func chipBtn(label: String, icon: String, sel: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button { HapticManager.light(); action() } label: {
             HStack(spacing: 4) { Image(systemName: icon).font(.caption); Text(label).font(.caption).fontWeight(.medium) }
             .padding(.horizontal, 12).padding(.vertical, 6)
             .background(sel ? Color(hex: "264653") : Color.white)
@@ -256,4 +263,10 @@ struct CollectionDetailView: View {
             else { ScrollView { LazyVStack(spacing: 12) { ForEach(recipes) { r in NavigationLink(destination: RecipeDetailView(recipe: r)) { RecipeCardView(recipe: r) }.buttonStyle(.plain) } }.padding(.horizontal) } }
         }.navigationTitle(collectionName).background(Color(hex: "F8F6F0"))
     }
+}
+
+// MARK: - Notification for dismissing all sheets after recipe save
+
+extension Notification.Name {
+    static let recipeSavedDismissAll = Notification.Name("recipeSavedDismissAll")
 }

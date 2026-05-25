@@ -45,56 +45,86 @@ struct GroceryListView: View {
         
         return ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Progress
-                VStack(spacing: 6) {
-                    HStack {
-                        Text("\(checkedCount) of \(totalCount) items").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
-                        Spacer()
-                        if checkedCount == totalCount && totalCount > 0 { Text("All done!").font(.subheadline.weight(.semibold)).foregroundStyle(Color(hex: "2A9D8F")) }
-                    }
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 3).fill(Color(hex: "E0DDD5")).frame(height: 6)
-                            RoundedRectangle(cornerRadius: 3).fill(Color(hex: "2A9D8F"))
-                                .frame(width: totalCount > 0 ? geo.size.width * CGFloat(checkedCount) / CGFloat(totalCount) : 0, height: 6)
-                                .animation(.easeInOut, value: checkedCount)
-                        }
-                    }.frame(height: 6)
-                }.padding(.horizontal)
+                groceryProgressBar(checked: checkedCount, total: totalCount)
                 
                 ForEach(sortedAisles, id: \.self) { aisle in
                     if let items = grouped[aisle] {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(spacing: 6) {
-                                Image(systemName: aisle.icon).font(.caption).foregroundStyle(Color(hex: "2A9D8F"))
-                                Text(aisle.rawValue).font(.subheadline.weight(.bold)).foregroundStyle(Color(hex: "264653"))
-                            }.padding(.horizontal)
-                            
-                            VStack(spacing: 0) {
-                                ForEach(Array(items.enumerated()), id: \.element.id) { idx, item in
-                                    Button { store.toggleGroceryItem(item) } label: {
-                                        HStack(spacing: 12) {
-                                            Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
-                                                .foregroundStyle(item.isChecked ? Color(hex: "2A9D8F") : .secondary).font(.title3)
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                HStack(spacing: 6) {
-                                                    Text(item.name).font(.body).strikethrough(item.isChecked)
-                                                        .foregroundStyle(item.isChecked ? .secondary : .primary)
-                                                    if item.inPantry { Text("IN PANTRY").font(.system(size: 8, weight: .bold)).foregroundStyle(.green).padding(.horizontal, 4).padding(.vertical, 2).background(Color.green.opacity(0.1)).clipShape(Capsule()) }
-                                                }
-                                                if !item.quantities.isEmpty { Text(item.quantities.joined(separator: " + ")).font(.caption).foregroundStyle(.secondary) }
-                                            }
-                                            Spacer()
-                                        }.padding(.vertical, 10).padding(.horizontal, 12)
-                                    }.buttonStyle(.plain)
-                                    if idx < items.count - 1 { Divider().padding(.leading, 48) }
-                                }
-                            }.background(Color.white).clipShape(RoundedRectangle(cornerRadius: 12)).shadow(color: .black.opacity(0.04), radius: 4, y: 2).padding(.horizontal)
-                        }
+                        groceryAisleSection(aisle: aisle, items: items)
                     }
                 }
             }.padding(.top, 12).padding(.bottom, 20)
         }
+    }
+    
+    private func groceryProgressBar(checked: Int, total: Int) -> some View {
+        VStack(spacing: 6) {
+            HStack {
+                Text("\(checked) of \(total) items").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                Spacer()
+                if checked == total && total > 0 { Text("All done!").font(.subheadline.weight(.semibold)).foregroundStyle(Color(hex: "2A9D8F")) }
+            }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 3).fill(Color(hex: "E0DDD5")).frame(height: 6)
+                    RoundedRectangle(cornerRadius: 3).fill(Color(hex: "2A9D8F"))
+                        .frame(width: total > 0 ? geo.size.width * CGFloat(checked) / CGFloat(total) : 0, height: 6)
+                        .animation(.easeInOut, value: checked)
+                }
+            }.frame(height: 6)
+        }.padding(.horizontal)
+    }
+    
+    private func groceryAisleSection(aisle: GroceryAisle, items: [GroceryItem]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: aisle.icon).font(.caption).foregroundStyle(Color(hex: "2A9D8F"))
+                Text(aisle.rawValue).font(.subheadline.weight(.bold)).foregroundStyle(Color(hex: "264653"))
+            }.padding(.horizontal)
+            
+            VStack(spacing: 0) {
+                ForEach(Array(items.enumerated()), id: \.element.id) { idx, item in
+                    groceryItemRow(item: item)
+                    if idx < items.count - 1 { Divider().padding(.leading, 48) }
+                }
+            }
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
+            .padding(.horizontal)
+        }
+    }
+    
+    private func groceryItemRow(item: GroceryItem) -> some View {
+        Button {
+            HapticManager.light()
+            store.toggleGroceryItem(item)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(item.isChecked ? Color(hex: "2A9D8F") : .secondary)
+                    .font(.title3)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(item.name).font(.body).strikethrough(item.isChecked)
+                            .foregroundStyle(item.isChecked ? .secondary : .primary)
+                        if item.inPantry {
+                            Text("IN PANTRY").font(.system(size: 8, weight: .bold))
+                                .foregroundStyle(.green)
+                                .padding(.horizontal, 4).padding(.vertical, 2)
+                                .background(Color.green.opacity(0.1))
+                                .clipShape(Capsule())
+                        }
+                    }
+                    if !item.quantities.isEmpty {
+                        Text(item.quantities.joined(separator: " + ")).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+        }
+        .buttonStyle(.plain)
     }
     
     private var recipePickerSheet: some View {

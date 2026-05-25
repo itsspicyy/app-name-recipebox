@@ -1,11 +1,20 @@
 import Foundation
+import Combine
 import UserNotifications
 import UIKit
 
 class NotificationManager: ObservableObject {
     static let shared = NotificationManager()
     
-    @Published var isAuthorized: Bool = false
+    private var _isAuthorized: Bool = false
+    
+    var isAuthorized: Bool {
+        get { _isAuthorized }
+        set {
+            _isAuthorized = newValue
+            DispatchQueue.main.async { self.objectWillChange.send() }
+        }
+    }
     
     private let center = UNUserNotificationCenter.current()
     
